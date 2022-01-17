@@ -1,0 +1,138 @@
+-- DESENVOLVIDO POR FÁBIO VERONI - 20/06/2021
+
+---- NOTAS EMITIDOS NO MES E NAO PAGAS 
+
+Select DISTINCT
+-- RE.ESTNCODIGO,
+    (0) AS ORIGEM,
+    (3) AS TIPO,
+    CASE WHEN 
+        RF.CGC_CPF IS NULL THEN TO_CHAR ('00000000000000')
+    ELSE 
+        LPAD(translate(RF.CGC_CPF,' .-/', ' '),14,'0')
+    END AS CGC_CPF,
+    CASE WHEN
+        RF.MOEDA='R' THEN RE.ESTCSIGLA  -- Ajustar Para ter 2 digitos. Aguardar resposta Rosângela.
+    ELSE
+        'EX'
+    END AS UF,
+    CASE WHEN
+        RF.INSC_ESTADUAL='Isenta' or RF.INSC_ESTADUAL IS NULL THEN ('00000000000000000000')
+    ELSE
+        LPAD(translate(RF.INSC_ESTADUAL,' .-/', ' '),20,'0') 
+    END AS IE,
+    -- LPAD(NF.SERIE,6,'0') AS SERIE,
+    ('%%%%%%') AS SERIE,
+    ('%%%%%%') AS SUBSERIE,    
+    LPAD(NF.NUMERO_NFE,10,'0') AS NUMERONF,
+    ('000') AS DESD,
+    translate(TO_CHAR(NF.DATAEMISSAO_NFE,'DD/MM/YYYY'),' .-/', ' ') AS DATA_EMISSAO,
+    LPAD(RF.NUMERO,20,'0') AS NUFATURA,
+    -- ('31122030') AS VENCIMENTO,
+     CASE WHEN  
+        translate(TO_CHAR(add_months(SYSDATE,-1),'MM/YYYY'),' .-/', ' ') = translate(TO_CHAR(RF.DATA_VENC,'MM/YYYY'),' .-/', ' ')
+       -- THEN ('31122021') -- select add_months(SYSDATE,-1) from dual
+        THEN ('31122030') --|| translate(TO_CHAR(SYSDATE,'YYYY'),' .-/', ' ')
+        ELSE translate(TO_CHAR(RF.DATA_VENC,'DD/MM/YYYY'),' .-/', ' ')  
+        END AS VENCIMENTO,
+      -- translate(TO_CHAR(RF.DATA_VENC,'DD/MM/YYYY'),' .-/', ' ') AS DATA_VENC, 
+    -- LPAD(TO_NUMBER(REPLACE(TO_CHAR(NF.HONOR,'99999999999999D99'),',',''),'99999999999999'),14,'0') AS VAL_BRUTO, -- Colocar Mascara 
+    LPAD(REPLACE(TO_CHAR(NF.HONOR,'FM999999999D90'),',','.') ,14,'0')   AS VAL_BRUTO, 
+    -- LPAD(TO_NUMBER(REPLACE(TO_CHAR(NF.IRRF,'99999999999999D99'),',',''),'99999999999999'),14,'0') AS IRRF,
+    LPAD(REPLACE(TO_CHAR(NF.IRRF,'FM999999999D90'),',','.') ,14,'0')   AS IRRF, 
+    
+   --regexp_replace(replace(LPAD(NF.IRRF, 11,'0'),',',''),'([0-9]{2})([0-9]{3})([0-9]{3})','\1.\2.\3.') as teste, -- 99.999.999.999
+    
+    -- regexp_replace(LPAD('00000000191', 11),'([0-9]{3})([0-9]{3})([0-9]{3})','\1.\2.\3-') as CPF from dual;
+    
+   --  LPAD(TO_NUMBER(REPLACE(TO_CHAR(NF.PIS,'99999999999999D99'),',',''),'99999999999999'),14,'0') AS PIS,
+    LPAD(REPLACE(TO_CHAR(NF.PIS,'FM999999999D90'),',','.') ,14,'0')   AS PIS,
+    -- LPAD(TO_NUMBER(REPLACE(TO_CHAR(NF.COFINS,'99999999999999D99'),',',''),'99999999999999'),14,'0') AS COFINS,
+    LPAD(REPLACE(TO_CHAR(NF.COFINS,'FM999999999D90'),',','.') ,14,'0')   AS COFINS,
+    -- LPAD(TO_NUMBER(REPLACE(TO_CHAR(NF.CSLL,'99999999999999D99'),',',''),'99999999999999'),14,'0') AS CSLL,
+    LPAD(REPLACE(TO_CHAR(NF.CSLL,'FM999999999D90'),',','.') ,14,'0')   AS CSLL,
+    -- LPAD(TO_NUMBER(REPLACE(TO_CHAR(((((NF.HONOR-NF.IRRF)-NF.PIS)-NF.COFINS)-NF.CSLL),'99999999999999D99'),',',''),'99999999999999'),14,'0') AS VAL_LIQ,
+    LPAD(REPLACE(TO_CHAR(((((NF.HONOR-NF.IRRF)-NF.PIS)-NF.COFINS)-NF.CSLL),'FM999999999D90'),',','.') ,14,'0') AS VAL_LIQ,
+   -- FCAR.CRCDRECEBIMENTO,
+   -- SYSDATE,
+   -- CASE WHEN FCAR.CRCDRECEBIMENTO<=SYSDATE THEN ('2')    ELSE ('1')     AS COMPESACAO,
+  --  (SYSDATE,'MM/YYYY'),
+    CASE WHEN  
+        translate(TO_CHAR(add_months(SYSDATE,-1),'MM/YYYY'),' .-/', ' ') = translate(TO_CHAR(RF.DATA_VENC,'MM/YYYY'),' .-/', ' ')
+       -- THEN ('31122021') -- select add_months(SYSDATE,-1) from dual
+        THEN ('3112')|| translate(TO_CHAR(SYSDATE,'YYYY'),' .-/', ' ')
+        ELSE translate(TO_CHAR(RF.DATA_VENC,'DD/MM/YYYY'),' .-/', ' ')  
+        END AS COMPESACAO,
+    ('%%%%%%%%%%%') AS COD_CONTABIL,  --- Pos 192
+    ('%%%%%%%%') AS DATA_PAG,  
+    ('%%%%%%%%') AS DATA_RAZAO,
+    ('00000000000.00') AS VAL_PAGO,
+    ('%%%%%%%%%%%') AS COD_CONTABIL_PAG,
+     
+    CASE WHEN
+        FCAR.CRCNDESCRECHON=0 OR FCAR.CRCNDESCRECHON<0 OR FCAR.CRCNDESCRECHON IS NULL THEN TO_CHAR('00000000000.00') 
+    WHEN               
+        RF.MOEDA<>'R' THEN  LPAD(REPLACE(TO_CHAR((FCAR.CRCNDESCRECHON*FCAR.CRCNCOTACAO),'FM999999999D90'),',','.'),14,'0')
+    ELSE 
+        LPAD(REPLACE(TO_CHAR(FCAR.CRCNDESCRECHON,'FM999999999D90'),',','.'),14,'0')
+    END AS JUR_MUL,
+     -- ('00000000000') AS COD_CONT_JUR_MUL,
+     ('%%%%%%%%%%%') AS COD_CONT_JUR_MUL,
+          /*
+    CASE WHEN
+        FCAR.CRCNDESCRECHON>0 OR FCAR.CRCNDESCRECHON IS NULL THEN TO_CHAR('00000000000000')
+    WHEN 
+        RF.MOEDA<>'R' THEN  LPAD(TO_NUMBER(REPLACE(TO_CHAR((FCAR.CRCNDESCRECHON*FCAR.CRCNCOTACAO)*(-1),'99999999999999D99'),',',''),'99999999999999'),14,'0')
+    ELSE   
+        LPAD(TO_NUMBER(REPLACE(TO_CHAR(FCAR.CRCNDESCRECHON*(-1),'99999999999999D99'),',',''),'99999999999999'),14,'0')
+    END AS DESCONTO,
+    */
+     CASE WHEN
+        FCAR.CRCNDESCRECHON>0 OR FCAR.CRCNDESCRECHON IS NULL THEN TO_CHAR('00000000000.00')
+    WHEN 
+        RF.MOEDA<>'R' THEN  LPAD(REPLACE(TO_CHAR((FCAR.CRCNDESCRECHON*FCAR.CRCNCOTACAO)*(-1),'FM999999999D90'),',','.'),14,'0')
+    ELSE   
+        LPAD(REPLACE(TO_CHAR(FCAR.CRCNDESCRECHON*(-1),'FM999999999D90'),',','.'),14,'0')
+    END AS DESCONTO,
+   ('%%%%%%%%%%%') AS COD_CONT_DESC,    
+    ('000000') AS JUROSAOMES,
+    ('S') AS INTEGRA,
+   
+    LPAD(REPLACE(TO_CHAR((NF.HONOR),'FM999999999D90'),',','.'),14,'0') AS BASE_CALCULO,    
+    ('1') AS NATUREZA,
+    ('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%') AS PROC_PIS_COFINS,
+    CASE WHEN    
+        RF.MOEDA='R' THEN  ('01')
+    ELSE 
+       ('99')
+    END AS TIP_PAG,
+    CASE WHEN    
+        RF.MOEDA='R' THEN  ('%%%%%%%%%%%%%%%%%%%%%%%%%')
+    ELSE 
+       ('HONORARIOS INTERNACIONAIS') 
+    END AS IDIC_PAG    
+    
+    FROM  RCR.FATURA RF 
+    FULL  JOIN RCR.ESTADO RE ON (RF.ESTNCODIGO=RE.ESTNCODIGO)
+          INNER JOIN RCR.NOTAFISCAL NF  ON (RF.NUMERO=NF.NUMERO)
+          INNER JOIN FINANCE.CONTASRECEBER FCAR ON (RF.NUMERO=FCAR.CRCNFATURA)
+          FULL JOIN TEMP_ADI T ON (RF.NUMERO=T.ADINFATURA)
+          FULL JOIN FINANCE.LANCAMENTO FL ON (T.ADINLANCAMENTO=FL.LANNCODIG)
+  
+    WHERE  NF.ORGNCODIG=1
+    -- and fcar.crcnfatura=114380 
+     AND FCAR.CRCDRECEBIMENTO is null 
+     AND NF.DATA_EMISSAO>='01-12-2021'  AND NF.DATA_EMISSAO<'01-01-2022' -- 2020 -- CAMPO DE FILTRO DO ANO DE EMISSÃO
+    --- NOTAS RECEBIDAS NO MES 08 
+    --AND FCAR.CRCDRECEBIMENTO>='01-08-2021' -- FILTRO SOMENTE PARA AJUSTE DO MÊS 07/2021.
+    -- AND NF.DATA_EMISSAO>='01-01-2021'  
+    ORDER BY  8
+  
+  
+  
+  -------------------------------------------- ÁREA DE TESTES E DESENVOLVIMENTO ------------------------------------
+  -- Pegar o campo NUFATURA sem os zeros a esquerda de uma fatura que tenha o vencimento = 311122030 e substituir ao numero que está após o igual no select abaixo 
+  
+  -- SELECT * FROM RCR.FATURA WHERE NUMERO=44933
+  -- Se o terceiro campo (DATA_VENC) for uma data passada ao atual dia, está correto o tratamento dado pela Query.
+  
