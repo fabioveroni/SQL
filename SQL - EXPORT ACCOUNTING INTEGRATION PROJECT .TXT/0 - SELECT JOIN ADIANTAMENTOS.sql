@@ -22,7 +22,7 @@ SELECT * FROM RCR.ADIANTAMENTO ORDER BY 1
 COMMIT
 
 
-*********************************************-----------------ADJUSTMENT AREA IN TEMPORARY TABLE AND INSTRUCTIONS------------------------*******************************************************
+----------------- ********************************************* ADJUSTMENT AREA IN TEMPORARY TABLE AND INSTRUCTIONS *******************************************************------------------------
 
 -- RUN THE SELECT TO GENERATE RESULTS FOR UPDATE
 
@@ -51,8 +51,7 @@ ORDER BY 1
 -- EMITIR E FAZER O MESMO PROCEDIMENTO PARA OS ARQUIVOS 02 E 03  -- ISSUE AND PERFORM THE SAME PROCEDURE FOR FILES 02 AND 03
 
 
- 
-*********************************************------------------------------DRAFT AND TESTING AREA------------------------*******************************************************
+ ----------------- ********************************************* DRAFT AND TESTING AREA *******************************************************------------------------
 
 UPDATE TEMP_ADI T 
  SET T.ADINLANCAMENTO=R.ADINLANCAMENTO
