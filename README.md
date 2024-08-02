@@ -1,4 +1,4 @@
-# SQL
-Repositório de códigos e projetos em SQL
+# PL-SQL
+Code and project repository in SQL
 
-## Conteúdo inicial de projeto de retirada/tratamento de dados para geração de arquivo .txt de integração com Contabilidade. 
+## Initial content of data collection/processing project to generate .txt files for integration with Accounting.
